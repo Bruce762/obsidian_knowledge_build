@@ -1,6 +1,7 @@
 ---
 description: LLM Wiki — 將任意輸入逐步建構成可累積的個人知識庫（第二大腦）
 ---
+請依照以下內容幫打造個人知識庫以及CLAUDE.md
 
 # LLM Wiki
 
@@ -78,17 +79,50 @@ This document is intentionally abstract. It describes the idea, not a specific i
 
 你現在是我的 **LLM Wiki Agent**，請依上述構想把這個專案建成我的第二大腦。
 
-本次要建立的知識庫設定如下（請我在執行時填寫；若有任一項留空，請先反問我、待我確認後再動工）：
+### Step 0 — 確認設定
 
-- **主題／用途**：`<這個 wiki 是關於什麼的 — 例如某研究領域、某本書、個人成長…>`
-- **第一份匯入來源**：`<要 ingest 的檔案路徑或內容；若尚未提供，請先建立空的 raw 資料夾並提示我放入>`
-- **wiki 存放位置**：`<預設為專案根目錄，可不填>`
+開工前先和我確認以下三項；**任一項留空就先反問我、待我確認後再動工**，不要自己編內容：
 
-確認設定後，請逐步引導我：
+- **主題／用途**：`<這個 wiki 關於什麼 — 某研究領域、某本書、個人成長…>`
+- **第一份匯入來源**：`<要 ingest 的檔案路徑或內容；若還沒有，先建立空的 raw/ 並提示我放入>`
+- **wiki 存放位置**：`<預設專案根目錄，可不填>`
 
-1. 建立包含完整規則的 `CLAUDE.md` 架構文件（資料夾結構、頁面格式、frontmatter 慣例、ingest／query／lint 工作流程）。
-2. 設置 `index.md`（內容目錄）與 `log.md`（時序紀錄）。
-3. 定義資料夾命名規範。
-4. 以第一份來源示範一次完整的 ingest。
+### Step 1 — 建立資料夾結構
 
-從現在起，每一次的互動都必須遵循該架構。
+建立以下結構（這是 `/ingest`、`/query`、`/lint` 共同依賴的慣例，請保持一致）：
+
+```
+raw/                  # 原始來源，不可變，只讀不改
+  assets/             # 下載到本地的圖片
+wiki/
+  index.md            # 內容目錄（catalog）
+  overview.md         # 演進中的總論（synthesis）：目前的整體判斷與主論點
+  log.md              # 時序紀錄（append-only）
+  sources/            # 來源摘要頁（type: source）
+  entities/           # 實體頁（人、組織、地點、產品…）
+  concepts/           # 概念頁
+  notes/              # 由 /query 回存的筆記（比較、分析、發現的連結）
+CLAUDE.md             # schema：規則與工作流程
+```
+
+> 這是上面 **Architecture** 的具體版，名詞對應如下：`sources/` ＝ Summaries（來源摘要頁）、`entities/`／`concepts/` ＝ entity／concept pages、comparisons 與分析等 `/query` 產物進 `notes/`、`index.md` ＝ catalog（目錄）、`overview.md` ＝ overview／synthesis（演進中的總論）。三個指令（`/ingest`、`/query`、`/lint`）都依賴這組路徑，**以這裡為準**。
+
+### Step 2 — 寫 CLAUDE.md（schema）
+
+產生 `CLAUDE.md`，至少定義：
+
+- 上面的資料夾結構與命名規範（檔名一律用 kebab-case slug）。
+- 頁面 frontmatter 慣例：`type`（source／entity／concept／note）、`created`、`updated`、`source`（指回 `raw/` 原檔）、`sources`（彙整的來源清單）。
+- 頁面格式：標題、可獨立閱讀的內文、用 `[[wikilink]]` 交叉連結。
+- 三個工作流程，並指向對應 slash command：ingest（`/ingest`）、query（`/query`）、lint（`/lint`）。
+- 鐵則：`raw/` 只讀；`wiki/` 由 LLM 維護；遇矛盾要標註不可默默覆蓋；每次 ingest／query／lint 都更新 `wiki/index.md` 與 `wiki/log.md`；ingest 若改變了整體判斷就順手更新 `wiki/overview.md`（只補細節則不動，避免空轉）。
+
+### Step 3 — 初始化 index 與 log
+
+建立 `wiki/index.md`（依分類分區：sources／entities／concepts／notes）、`wiki/overview.md`（先放總論骨架：一句主旨＋待補的小節標題）與空的 `wiki/log.md`。
+
+### Step 4 — 示範第一次 ingest
+
+若我已提供第一份來源，就照 `/ingest` 流程完整跑一次做示範；否則提示我把檔案放進 `raw/` 再開始。
+
+完成後，往後每一次互動都遵循 `CLAUDE.md` 的架構；日常操作改用 `/ingest`、`/query`、`/lint` 三個指令。
